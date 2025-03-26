@@ -1,0 +1,25 @@
+@import "tailwindcss/preflight";
+@tailwind utilities;
+
+:root {
+  --background: #111827;
+  --foreground: #ffffff;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Custom styles for Three.js canvas */
+canvas {
+  touch-action: none;
+  outline: none;
+}
+
+/* Custom styles for Recharts */
+.recharts-wrapper {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
