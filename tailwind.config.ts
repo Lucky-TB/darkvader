@@ -8,13 +8,34 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Space Grotesk', 'sans-serif'],
+      },
+      animation: {
+        gradient: 'gradient 8s ease infinite',
+      },
+      keyframes: {
+        gradient: {
+          '0%, 100%': {
+            'background-size': '200% 200%',
+            'background-position': 'left center',
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center',
+          },
+        },
+      },
       colors: {
         background: 'var(--background)',
         foreground: 'var(--foreground)',
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography'),
+    require('@tailwindcss/forms'),
+  ],
 };
 
 export default config; 
