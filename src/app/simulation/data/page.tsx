@@ -1,7 +1,12 @@
+'use client';
+
 import Navbar from '@/components/Navbar';
 import VelocityGraph from '@/components/VelocityGraph';
+import { useGalaxy } from '@/context/GalaxyContext';
 
 export default function DataPage() {
+  const { params } = useGalaxy();
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black text-white">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/5 via-transparent to-transparent" />
@@ -44,7 +49,7 @@ export default function DataPage() {
                   The data shows the discrepancy between predicted and observed velocities:
                 </p>
                 <div className="p-6 rounded-xl bg-black/20 border border-white/5 group-hover:border-blue-500/30 transition-colors">
-                  <VelocityGraph />
+                  <VelocityGraph {...params} />
                 </div>
               </section>
 
@@ -61,7 +66,7 @@ export default function DataPage() {
                     <span className="text-2xl text-yellow-400">•</span>
                     <span className="text-lg">Dark matter halo extends beyond visible matter</span>
                   </li>
-                  <li className="flex items-center space-x-4 p-6 rounded-xl bg-black/20 border border-white/5 group-hover:border-blue-500/30 transition-colors">
+                  <li className="flex items-center space-x-4 p-6 rounded-xl bg-black/20 border border-white/5 group-hover:border-green-500/30 transition-colors">
                     <span className="text-2xl text-blue-400">•</span>
                     <span className="text-lg">Rotation curves remain flat at large distances</span>
                   </li>

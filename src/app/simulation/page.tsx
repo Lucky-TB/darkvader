@@ -1,10 +1,11 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import VelocityDisplay from '@/components/VelocityDisplay';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { useGalaxy } from '@/context/GalaxyContext';
 
 const GalaxySimulation = dynamic(() => import('@/components/GalaxySimulation'), {
   loading: () => <LoadingSpinner />,
@@ -12,16 +13,11 @@ const GalaxySimulation = dynamic(() => import('@/components/GalaxySimulation'), 
 });
 
 export default function SimulationPage() {
-  const [params, setParams] = useState({
-    darkMatterMass: 1e12,
-    normalMatterMass: 1e11,
-    blackHoleMass: 1e6,
-    darkMatterRatio: 0.85
-  });
+  const { params, setParams } = useGalaxy();
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black text-white">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 pt-24 pb-8">
         <h1 className="text-4xl md:text-5xl font-space font-bold text-center mb-12 bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent">
           Galaxy Simulation with Dark Matter
         </h1>
@@ -90,7 +86,10 @@ export default function SimulationPage() {
                     max="10"
                     step="0.1"
                     value={params.darkMatterMass / 1e12}
-                    onChange={(e) => setParams(p => ({ ...p, darkMatterMass: parseFloat(e.target.value) * 1e12 }))}
+                    onChange={(e) => setParams({ 
+                      ...params, 
+                      darkMatterMass: parseFloat(e.target.value) * 1e12 
+                    })}
                     className="w-full h-1 bg-gray-800 rounded-full appearance-none cursor-pointer accent-blue-500"
                   />
                   <span className="text-xs text-blue-400 mt-1 block">{(params.darkMatterMass / 1e12).toFixed(1)}</span>
@@ -103,7 +102,10 @@ export default function SimulationPage() {
                     max="10"
                     step="0.1"
                     value={params.normalMatterMass / 1e11}
-                    onChange={(e) => setParams(p => ({ ...p, normalMatterMass: parseFloat(e.target.value) * 1e11 }))}
+                    onChange={(e) => setParams({ 
+                      ...params, 
+                      normalMatterMass: parseFloat(e.target.value) * 1e11 
+                    })}
                     className="w-full h-1 bg-gray-800 rounded-full appearance-none cursor-pointer accent-blue-500"
                   />
                   <span className="text-xs text-blue-400 mt-1 block">{(params.normalMatterMass / 1e11).toFixed(1)}</span>
@@ -116,7 +118,10 @@ export default function SimulationPage() {
                     max="100"
                     step="1"
                     value={params.blackHoleMass / 1e6}
-                    onChange={(e) => setParams(p => ({ ...p, blackHoleMass: parseFloat(e.target.value) * 1e6 }))}
+                    onChange={(e) => setParams({ 
+                      ...params, 
+                      blackHoleMass: parseFloat(e.target.value) * 1e6 
+                    })}
                     className="w-full h-1 bg-gray-800 rounded-full appearance-none cursor-pointer accent-blue-500"
                   />
                   <span className="text-xs text-blue-400 mt-1 block">{(params.blackHoleMass / 1e6).toFixed(0)}</span>
@@ -129,7 +134,10 @@ export default function SimulationPage() {
                     max="1"
                     step="0.01"
                     value={params.darkMatterRatio}
-                    onChange={(e) => setParams(p => ({ ...p, darkMatterRatio: parseFloat(e.target.value) }))}
+                    onChange={(e) => setParams({ 
+                      ...params, 
+                      darkMatterRatio: parseFloat(e.target.value) 
+                    })}
                     className="w-full h-1 bg-gray-800 rounded-full appearance-none cursor-pointer accent-blue-500"
                   />
                   <span className="text-xs text-blue-400 mt-1 block">{(params.darkMatterRatio * 100).toFixed(0)}%</span>
@@ -141,9 +149,9 @@ export default function SimulationPage() {
             <section className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-white/10">
               <h2 className="text-xl font-space font-bold mb-6 text-purple-500">Velocity Information</h2>
               <VelocityDisplay
-                haloVelocity={350}
-                diskVelocity={250}
-                bulgeVelocity={150}
+                haloVelocity={Math.sqrt((6.67e-11 * params.darkMatterMass * 2e30) / (20 * 3.086e19)) / 1000}
+                diskVelocity={Math.sqrt((6.67e-11 * (params.normalMatterMass + params.darkMatterMass * 0.8) * 2e30) / (15 * 3.086e19)) / 1000}
+                bulgeVelocity={Math.sqrt((6.67e-11 * (params.blackHoleMass + params.normalMatterMass * 0.2) * 2e30) / (5 * 3.086e19)) / 1000}
               />
             </section>
 

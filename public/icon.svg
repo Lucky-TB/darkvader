@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#0a0a1a"/>
+  
+  <!-- Dark Matter Halo -->
+  <circle cx="256" cy="256" r="240" fill="#1a1a2e" opacity="0.8"/>
+  
+  <!-- Outer Spiral Arms -->
+  <path d="M256 16 
+           C 256 16, 160 120, 160 200 
+           C 160 280, 256 384, 256 384" 
+        stroke="#3d7ab8" 
+        stroke-width="16" 
+        fill="none" 
+        opacity="0.9"/>
+  
+  <path d="M256 16 
+           C 256 16, 352 120, 352 200 
+           C 352 280, 256 384, 256 384" 
+        stroke="#3d7ab8" 
+        stroke-width="16" 
+        fill="none" 
+        opacity="0.9"/>
+  
+  <!-- Middle Spiral Arms -->
+  <path d="M256 60 
+           C 256 60, 200 160, 200 220 
+           C 200 280, 256 340, 256 340" 
+        stroke="#4a90e2" 
+        stroke-width="12" 
+        fill="none" 
+        opacity="0.8"/>
+  
+  <path d="M256 60 
+           C 256 60, 312 160, 312 220 
+           C 312 280, 256 340, 256 340" 
+        stroke="#4a90e2" 
+        stroke-width="12" 
+        fill="none" 
+        opacity="0.8"/>
+  
+  <!-- Inner Spiral Arms -->
+  <path d="M256 100 
+           C 256 100, 220 180, 220 220 
+           C 220 260, 256 300, 256 300" 
+        stroke="#6ab0ff" 
+        stroke-width="8" 
+        fill="none" 
+        opacity="0.7"/>
+  
+  <path d="M256 100 
+           C 256 100, 292 180, 292 220 
+           C 292 260, 256 300, 256 300" 
+        stroke="#6ab0ff" 
+        stroke-width="8" 
+        fill="none" 
+        opacity="0.7"/>
+  
+  <!-- Core -->
+  <circle cx="256" cy="256" r="80" fill="#f5d0c5" opacity="0.9"/>
+  <circle cx="256" cy="256" r="60" fill="#ffb3a3" opacity="0.9"/>
+  <circle cx="256" cy="256" r="40" fill="#ff9c8c" opacity="0.9"/>
+  <circle cx="256" cy="256" r="20" fill="#ff8a7a" opacity="0.9"/>
+  
+  <!-- Stars -->
+  <circle cx="256" cy="256" r="4" fill="#ffffff"/>
+  <circle cx="160" cy="200" r="3" fill="#ffffff"/>
+  <circle cx="352" cy="200" r="3" fill="#ffffff"/>
+  <circle cx="256" cy="384" r="3" fill="#ffffff"/>
+  <circle cx="200" cy="220" r="2" fill="#ffffff"/>
+  <circle cx="256" cy="256" r="3" fill="#ffffff"/>
+  <circle cx="180" cy="200" r="2" fill="#ffffff"/>
+  <circle cx="332" cy="200" r="2" fill="#ffffff"/>
+  <circle cx="256" cy="384" r="2" fill="#ffffff"/>
+  <circle cx="220" cy="220" r="2" fill="#ffffff"/>
+  <circle cx="292" cy="220" r="2" fill="#ffffff"/>
+  <circle cx="256" cy="340" r="2" fill="#ffffff"/>
+</svg> 

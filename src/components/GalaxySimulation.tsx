@@ -116,11 +116,39 @@ function Galaxy({ darkMatterMass, normalMatterMass, blackHoleMass, darkMatterRat
   const params = { darkMatterMass, normalMatterMass, blackHoleMass, darkMatterRatio };
 
   useFrame((state) => {
-    if (particlesRef.current) {
-      const totalMass = darkMatterMass + normalMatterMass + blackHoleMass;
-      const baseRotationSpeed = 0.0005;
-      const massScaledSpeed = baseRotationSpeed * Math.sqrt(1e12 / totalMass);
-      particlesRef.current.rotation.y += massScaledSpeed;
+    if (particlesRef.current && particlesRef.current.geometry) {
+      const positions = particlesRef.current.geometry.attributes.position.array as Float32Array;
+      const count = positions.length / 3;
+      
+      for (let i = 0; i < count; i++) {
+        const x = positions[i * 3];
+        const y = positions[i * 3 + 1];
+        const z = positions[i * 3 + 2];
+        
+        // Calculate radius in parsecs
+        const radius = Math.sqrt(x * x + z * z);
+        if (radius === 0) continue;
+        
+        // Calculate orbital velocity using our astronomical formula
+        const velocity = calculateOrbitalVelocity(radius, params);
+        
+        // Scale velocity for visual effect while maintaining proportions
+        const scaleFactor = 0.00001;
+        const angularVelocity = (velocity * scaleFactor) / radius;
+        
+        // Update position using circular motion
+        const cos = Math.cos(angularVelocity);
+        const sin = Math.sin(angularVelocity);
+        
+        // Rotate position around y-axis
+        const newX = x * cos - z * sin;
+        const newZ = z * cos + x * sin;
+        
+        positions[i * 3] = newX;
+        positions[i * 3 + 2] = newZ;
+      }
+      
+      particlesRef.current.geometry.attributes.position.needsUpdate = true;
     }
   });
 
