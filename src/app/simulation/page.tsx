@@ -28,7 +28,7 @@ export default function SimulationPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Main Simulation Area */}
-          <div className="lg:col-span-8 flex flex-col gap-6">
+          <div className="lg:col-span-8 flex flex-col gap-8">
             <section className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-white/10">
               <h2 className="text-xl font-space font-bold mb-4 text-purple-500">3D Galaxy Visualization</h2>
               <div className="aspect-square w-full rounded-lg overflow-hidden">
@@ -40,6 +40,44 @@ export default function SimulationPage() {
               </div>
             </section>
 
+            {/* About Section */}
+            <section className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-white/10">
+              <h2 className="text-xl font-space font-bold mb-6 text-purple-500">About the Simulation</h2>
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-space font-semibold mb-3 text-blue-500">What You're Seeing</h3>
+                  <ul className="space-y-3 text-gray-300">
+                    <li className="flex items-center gap-2">
+                      <span className="text-yellow-500">●</span> Yellow: Central bulge
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-blue-500">●</span> Blue: Galactic disk
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-purple-500">●</span> Purple: Dark matter halo
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-lg font-space font-semibold mb-3 text-blue-500">How to Interact</h3>
+                  <ul className="space-y-3 text-gray-300">
+                    <li className="flex items-center gap-2">
+                      <span className="text-green-500">↔️</span> Drag to rotate view
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-green-500">🖱️</span> Scroll to zoom
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-green-500">⚙️</span> Use sliders to adjust parameters
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          {/* Right Sidebar */}
+          <div className="lg:col-span-4 flex flex-col gap-6">
             {/* Galaxy Parameters */}
             <section className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-white/10">
               <h2 className="text-xl font-space font-bold mb-6 text-purple-500">Galaxy Parameters</h2>
@@ -98,10 +136,7 @@ export default function SimulationPage() {
                 </div>
               </div>
             </section>
-          </div>
 
-          {/* Right Sidebar */}
-          <div className="lg:col-span-4 flex flex-col gap-6">
             {/* Velocity Section */}
             <section className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-white/10">
               <h2 className="text-xl font-space font-bold mb-6 text-purple-500">Velocity Information</h2>
@@ -112,37 +147,34 @@ export default function SimulationPage() {
               />
             </section>
 
-            {/* About Section */}
+            {/* Scientific Data Panel */}
             <section className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-              <h2 className="text-xl font-space font-bold mb-6 text-purple-500">About the Simulation</h2>
-              <div className="space-y-6">
+              <h2 className="text-xl font-space font-bold mb-6 text-purple-500">Scientific Data</h2>
+              <div className="space-y-4">
                 <div>
-                  <h3 className="text-lg font-space font-semibold mb-3 text-blue-500">What You're Seeing</h3>
-                  <ul className="space-y-3 text-gray-300">
-                    <li className="flex items-center gap-2">
-                      <span className="text-yellow-500">●</span> Yellow: Central bulge
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-blue-500">●</span> Blue: Galactic disk
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-purple-500">●</span> Purple: Dark matter halo
-                    </li>
-                  </ul>
+                  <h3 className="text-sm font-space font-semibold text-blue-400">Total Mass</h3>
+                  <p className="text-lg text-white">
+                    {((params.darkMatterMass + params.normalMatterMass + params.blackHoleMass) / 1e12).toFixed(2)} × 10¹² M☉
+                  </p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-space font-semibold mb-3 text-blue-500">How to Interact</h3>
-                  <ul className="space-y-3 text-gray-300">
-                    <li className="flex items-center gap-2">
-                      <span className="text-green-500">↔️</span> Drag to rotate view
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-green-500">🖱️</span> Scroll to zoom
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-green-500">⚙️</span> Use sliders to adjust parameters
-                    </li>
-                  </ul>
+                  <h3 className="text-sm font-space font-semibold text-blue-400">Galaxy Radius</h3>
+                  <p className="text-lg text-white">
+                    {(Math.sqrt(params.darkMatterMass / 1e12) * 30).toFixed(1)} kpc
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-space font-semibold text-blue-400">Galaxy Type</h3>
+                  <p className="text-lg text-white">
+                    {params.darkMatterRatio > 0.8 ? 'Sa (Early Spiral)' : 
+                     params.darkMatterRatio > 0.6 ? 'Sb (Intermediate Spiral)' : 'Sc (Late Spiral)'}
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-space font-semibold text-blue-400">Orbital Period (at 20 kpc)</h3>
+                  <p className="text-lg text-white">
+                    {(2 * Math.PI * 20 * 3.086e19 / (250 * 1000) / (3.156e7 * 1e6)).toFixed(2)} Myr
+                  </p>
                 </div>
               </div>
             </section>
