@@ -12,7 +12,7 @@ export default function VelocityDisplay({
   bulgeVelocity,
 }: VelocityDisplayProps) {
   return (
-    <div className="absolute top-4 left-4 bg-black/30 backdrop-blur-xl border border-white/10 rounded-2xl p-8 text-white shadow-2xl shadow-blue-500/5">
+    <div className="bg-black/30 backdrop-blur-xl border border-white/10 rounded-2xl p-8 text-white shadow-2xl shadow-blue-500/5">
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-2xl" />
       <div className="relative">
         <h3 className="text-2xl font-bold mb-8 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-gradient">

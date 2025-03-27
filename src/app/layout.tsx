@@ -1,24 +1,42 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import Navbar from "@/components/Navbar";
 
-const geist = Geist({
+const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
+  display: "swap",
+  variable: "--font-space",
 });
 
 export const metadata: Metadata = {
-  title: "DarkVader - Dark Matter Galaxy Simulation",
-  description: "Interactive visualization of dark matter's effects on galaxy rotation curves",
+  title: "DarkVader - Galaxy Simulation with Dark Matter",
+  description: "Interactive 3D simulation of a galaxy showing the effects of dark matter on galactic rotation curves and structure.",
+  keywords: ["dark matter", "galaxy simulation", "astronomy", "physics", "3D visualization"],
+  authors: [{ name: "Your Name" }],
+  openGraph: {
+    title: "DarkVader - Galaxy Simulation with Dark Matter",
+    description: "Interactive 3D simulation of a galaxy showing the effects of dark matter on galactic rotation curves and structure.",
+    type: "website",
+    locale: "en_US",
+    siteName: "DarkVader",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "DarkVader - Galaxy Simulation with Dark Matter",
+    description: "Interactive 3D simulation of a galaxy showing the effects of dark matter on galactic rotation curves and structure.",
+  },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
-      <body className={`${geist.className} antialiased`}>
+    <html lang="en" className={spaceGrotesk.variable}>
+      <body className="min-h-screen bg-black text-white antialiased">
+        <Navbar />
         {children}
       </body>
     </html>

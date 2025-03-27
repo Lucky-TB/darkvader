@@ -1,192 +1,244 @@
 'use client';
 
-import { useRef, useMemo, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Stars, Text } from '@react-three/drei';
+import { OrbitControls, Stars } from '@react-three/drei';
 import * as THREE from 'three';
-import SimulationControls from './SimulationControls';
-import VelocityDisplay from './VelocityDisplay';
 
-// Constants
-const G = 6.67430e-11; // Gravitational constant
-const SOLAR_MASS = 1.989e30; // Solar mass in kg
-const PARSEC = 3.086e16; // Parsec in meters
+// Constants based on real astronomical data
+const SOLAR_MASS = 1.989e30; // kg
+const PARSEC = 3.086e16; // meters
+const G = 6.674e-11; // gravitational constant
+const KPC_TO_PARSEC = 1000; // 1 kpc = 1000 parsec
 
-interface StarProps {
-  position: [number, number, number];
-  color: string;
-  velocity: [number, number, number];
+interface GalaxyProps {
+  darkMatterMass: number;
+  normalMatterMass: number;
+  blackHoleMass: number;
+  darkMatterRatio: number;
 }
 
-function Star({ position, color, velocity }: StarProps) {
+function calculateOrbitalVelocity(radius: number, params: GalaxyProps): number {
+  const { darkMatterMass, normalMatterMass, blackHoleMass } = params;
+  
+  // Convert radius to meters
+  const r = radius * PARSEC;
+  
+  // Convert masses to kg
+  const dmMass = darkMatterMass * SOLAR_MASS;
+  const nmMass = normalMatterMass * SOLAR_MASS;
+  const bhMass = blackHoleMass * SOLAR_MASS;
+
+  // Black hole contribution (Keplerian)
+  const vBH = Math.sqrt((G * bhMass) / r);
+  
+  // Disk contribution (assumes exponential disk)
+  const diskScaleLength = 3 * KPC_TO_PARSEC * PARSEC;
+  const vDisk = Math.sqrt((G * nmMass * radius) / Math.pow(r, 3));
+  
+  // Dark matter halo contribution (NFW profile approximation)
+  const rs = 20 * KPC_TO_PARSEC * PARSEC;
+  const vHalo = Math.sqrt((G * dmMass) / r * (Math.log(1 + r/rs) - (r/rs)/(1 + r/rs)));
+
+  return Math.sqrt(vBH * vBH + vDisk * vDisk + vHalo * vHalo);
+}
+
+function BlackHole() {
+  const eventHorizonRef = useRef<THREE.Mesh>(null);
+  
+  useFrame((state) => {
+    if (eventHorizonRef.current) {
+      eventHorizonRef.current.rotation.z += 0.001;
+    }
+  });
+
   return (
-    <mesh position={position}>
-      <sphereGeometry args={[0.1, 16, 16]} />
-      <meshStandardMaterial color={color} />
+    <group>
+      {/* Event Horizon */}
+      <mesh ref={eventHorizonRef}>
+        <torusGeometry args={[1.5, 0.2, 16, 100]} />
+        <meshStandardMaterial 
+          color="#ff4400"
+          emissive="#ff2200"
+          emissiveIntensity={2}
+          toneMapped={false}
+        />
+      </mesh>
+      {/* Black Hole Core */}
+      <mesh>
+        <sphereGeometry args={[1, 32, 32]} />
+        <meshBasicMaterial color="black" />
+      </mesh>
+    </group>
+  );
+}
+
+function CelestialObject({ position, color, size, orbitRadius, params }: {
+  position: [number, number, number];
+  color: string;
+  size: number;
+  orbitRadius: number;
+  params: GalaxyProps;
+}) {
+  const ref = useRef<THREE.Mesh>(null);
+  const initialAngle = Math.random() * Math.PI * 2;
+
+  useFrame((state) => {
+    if (ref.current) {
+      const orbitalVelocity = calculateOrbitalVelocity(orbitRadius, params);
+      const scaledVelocity = orbitalVelocity * 1e-7;
+      
+      const time = state.clock.getElapsedTime();
+      const angle = initialAngle + time * scaledVelocity;
+      
+      ref.current.position.x = Math.cos(angle) * orbitRadius;
+      ref.current.position.z = Math.sin(angle) * orbitRadius;
+      ref.current.position.y = position[1];
+    }
+  });
+
+  return (
+    <mesh ref={ref} position={position}>
+      <sphereGeometry args={[size, 16, 16]} />
+      <meshStandardMaterial
+        color={color}
+        emissive={color}
+        emissiveIntensity={0.5}
+        toneMapped={false}
+      />
     </mesh>
   );
 }
 
-interface GalaxyProps {
-  darkMatterMass: number;
-  galaxyMass: number;
-  darkMatterRatio: number;
-}
-
-function Galaxy({ darkMatterMass, galaxyMass, darkMatterRatio }: GalaxyProps) {
-  const starsRef = useRef<THREE.Group>(null);
-  const numStars = 2000;
-  const numDarkMatterParticles = 5000;
-  const galaxyRadius = 10;
-  const diskHeight = 0.5;
-  const bulgeRadius = 2;
-
-  const { stars, darkMatter, velocities } = useMemo(() => {
-    const starPositions: [number, number, number][] = [];
-    const starColors: string[] = [];
-    const darkMatterPositions: [number, number, number][] = [];
-    const starVelocities: [number, number, number][] = [];
-
-    // Generate disk stars
-    for (let i = 0; i < numStars * 0.7; i++) {
-      const radius = Math.random() * galaxyRadius;
-      const theta = Math.random() * Math.PI * 2;
-      const height = (Math.random() - 0.5) * diskHeight;
-
-      const x = radius * Math.cos(theta);
-      const y = height;
-      const z = radius * Math.sin(theta);
-
-      starPositions.push([x, y, z]);
-      starColors.push('#ffffff');
-      starVelocities.push([0, 0, 0]);
-    }
-
-    // Generate bulge stars
-    for (let i = 0; i < numStars * 0.3; i++) {
-      const radius = Math.random() * bulgeRadius;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.random() * Math.PI * 2;
-
-      const x = radius * Math.sin(theta) * Math.cos(phi);
-      const y = radius * Math.sin(theta) * Math.sin(phi);
-      const z = radius * Math.cos(theta);
-
-      starPositions.push([x, y, z]);
-      starColors.push('#ffff00');
-      starVelocities.push([0, 0, 0]);
-    }
-
-    // Generate dark matter particles
-    for (let i = 0; i < numDarkMatterParticles; i++) {
-      const radius = Math.random() * galaxyRadius * 2;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.random() * Math.PI * 2;
-
-      const x = radius * Math.sin(theta) * Math.cos(phi);
-      const y = radius * Math.sin(theta) * Math.sin(phi);
-      const z = radius * Math.cos(theta);
-
-      darkMatterPositions.push([x, y, z]);
-    }
-
-    return {
-      stars: { positions: starPositions, colors: starColors },
-      darkMatter: { positions: darkMatterPositions },
-      velocities: starVelocities,
-    };
-  }, [numStars, numDarkMatterParticles, galaxyRadius, diskHeight, bulgeRadius]);
+function Galaxy({ darkMatterMass, normalMatterMass, blackHoleMass, darkMatterRatio }: GalaxyProps) {
+  const galaxyRef = useRef<THREE.Group>(null);
+  const particlesRef = useRef<THREE.Points>(null);
+  const params = { darkMatterMass, normalMatterMass, blackHoleMass, darkMatterRatio };
 
   useFrame((state) => {
-    if (!starsRef.current) return;
+    if (particlesRef.current) {
+      const totalMass = darkMatterMass + normalMatterMass + blackHoleMass;
+      const baseRotationSpeed = 0.0005;
+      const massScaledSpeed = baseRotationSpeed * Math.sqrt(1e12 / totalMass);
+      particlesRef.current.rotation.y += massScaledSpeed;
+    }
+  });
 
-    const time = state.clock.getElapsedTime();
-    const totalMass = galaxyMass + darkMatterMass;
+  useEffect(() => {
+    if (!galaxyRef.current) return;
 
-    // Update star positions and velocities
-    starsRef.current.children.forEach((star, i) => {
-      if (i >= numStars) return; // Skip dark matter particles
+    // Clear existing particles
+    while (galaxyRef.current.children.length) {
+      galaxyRef.current.remove(galaxyRef.current.children[0]);
+    }
 
-      const position = star.position;
-      const radius = Math.sqrt(
-        position.x ** 2 + position.y ** 2 + position.z ** 2
-      );
+    // Create galaxy particles
+    const particleGeometry = new THREE.BufferGeometry();
+    const particleCount = 15000;
+    const positions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
 
-      // Calculate orbital velocity based on radius and mass
-      const velocity = Math.sqrt(
-        (G * totalMass * SOLAR_MASS * 1e10) / (radius * PARSEC)
-      );
+    for (let i = 0; i < particleCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radiusFactor = Math.pow(Math.random(), 0.5);
+      const radius = radiusFactor * 50;
+      
+      // Create spiral arms
+      const armCount = 2;
+      const armOffset = (angle + radius * 0.2) % (Math.PI * 2);
+      const spiralFactor = Math.sin(armOffset * armCount) * 0.5;
+      
+      const x = radius * Math.cos(angle + spiralFactor);
+      const z = radius * Math.sin(angle + spiralFactor);
+      const scaleHeight = 5 * Math.exp(-radius * 0.1) * Math.pow(1e12 / (darkMatterMass + normalMatterMass), 0.25);
+      const y = (Math.random() - 0.5) * scaleHeight;
 
-      // Update position based on velocity
-      const angle = Math.atan2(position.z, position.x);
-      position.x = radius * Math.cos(angle + time * velocity / radius);
-      position.z = radius * Math.sin(angle + time * velocity / radius);
+      positions[i * 3] = x;
+      positions[i * 3 + 1] = y;
+      positions[i * 3 + 2] = z;
+
+      // Color based on matter type and radius
+      const isDarkMatter = Math.random() < darkMatterRatio;
+      const brightness = Math.max(0.4, 1 - radius / 50);
+      if (isDarkMatter) {
+        colors[i * 3] = 0.3 * brightness;
+        colors[i * 3 + 1] = 0.3 * brightness;
+        colors[i * 3 + 2] = 0.4 * brightness;
+      } else {
+        colors[i * 3] = 1.0 * brightness;
+        colors[i * 3 + 1] = 0.8 * brightness;
+        colors[i * 3 + 2] = 0.4 * brightness;
+      }
+    }
+
+    particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    particleGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    const particleMaterial = new THREE.PointsMaterial({
+      size: 0.2,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.8,
+      sizeAttenuation: true,
     });
+
+    const particleSystem = new THREE.Points(particleGeometry, particleMaterial);
+    particleSystem.name = 'particles';
+    particlesRef.current = particleSystem;
+    galaxyRef.current.add(particleSystem);
+
+  }, [darkMatterMass, normalMatterMass, blackHoleMass, darkMatterRatio]);
+
+  // Generate celestial objects
+  const celestialObjects = Array.from({ length: 50 }, (_, i) => {
+    const orbitRadius = Math.random() * 40 + 5;
+    const angle = Math.random() * Math.PI * 2;
+    const y = (Math.random() - 0.5) * 2;
+    return {
+      position: [
+        Math.cos(angle) * orbitRadius,
+        y,
+        Math.sin(angle) * orbitRadius
+      ] as [number, number, number],
+      color: Math.random() > 0.7 ? '#ff9900' : '#ffffff',
+      size: Math.random() * 0.3 + 0.1,
+      orbitRadius,
+      params
+    };
   });
 
   return (
-    <group ref={starsRef}>
-      {stars.positions.map((position, i) => (
-        <Star
-          key={i}
-          position={position}
-          color={stars.colors[i]}
-          velocity={velocities[i]}
-        />
-      ))}
-      {darkMatter.positions.map((position, i) => (
-        <mesh key={i + numStars} position={position}>
-          <sphereGeometry args={[0.05, 8, 8]} />
-          <meshStandardMaterial color="#4a4a4a" transparent opacity={0.3} />
-        </mesh>
+    <group ref={galaxyRef}>
+      <BlackHole />
+      {celestialObjects.map((obj, i) => (
+        <CelestialObject key={i} {...obj} />
       ))}
     </group>
   );
 }
 
-export default function GalaxySimulation() {
-  const [darkMatterMass, setDarkMatterMass] = useState(50);
-  const [galaxyMass, setGalaxyMass] = useState(10);
-  const [darkMatterRatio, setDarkMatterRatio] = useState(0.8);
+interface GalaxySimulationProps {
+  darkMatterMass: number;
+  normalMatterMass: number;
+  blackHoleMass: number;
+  darkMatterRatio: number;
+}
 
-  // Calculate velocities for different regions
-  const calculateVelocity = (radius: number) => {
-    const totalMass = galaxyMass + darkMatterMass;
-    return Math.sqrt(
-      (G * totalMass * SOLAR_MASS * 1e10) / (radius * PARSEC)
-    );
-  };
-
-  const haloVelocity = calculateVelocity(15);
-  const diskVelocity = calculateVelocity(5);
-  const bulgeVelocity = calculateVelocity(1);
-
+export default function GalaxySimulation({ darkMatterMass, normalMatterMass, blackHoleMass, darkMatterRatio }: GalaxySimulationProps) {
   return (
-    <div className="w-full h-[600px] relative">
-      <Canvas camera={{ position: [0, 5, 20], fov: 45 }}>
+    <div className="w-full h-full">
+      <Canvas camera={{ position: [100, 100, 100] }}>
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} />
-        <Galaxy
+        <Stars radius={300} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+        <Galaxy 
           darkMatterMass={darkMatterMass}
-          galaxyMass={galaxyMass}
+          normalMatterMass={normalMatterMass}
+          blackHoleMass={blackHoleMass}
           darkMatterRatio={darkMatterRatio}
         />
-        <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} />
-        <OrbitControls enableDamping dampingFactor={0.05} />
+        <OrbitControls />
       </Canvas>
-      <SimulationControls
-        darkMatterMass={darkMatterMass}
-        galaxyMass={galaxyMass}
-        darkMatterRatio={darkMatterRatio}
-        onDarkMatterMassChange={setDarkMatterMass}
-        onGalaxyMassChange={setGalaxyMass}
-        onDarkMatterRatioChange={setDarkMatterRatio}
-      />
-      <VelocityDisplay
-        haloVelocity={haloVelocity}
-        diskVelocity={diskVelocity}
-        bulgeVelocity={bulgeVelocity}
-      />
     </div>
   );
 } 
