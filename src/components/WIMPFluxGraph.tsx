@@ -14,10 +14,9 @@ import {
 
 interface WIMPFluxGraphProps {
   darkMatterMass: number;  // in solar masses
-  darkMatterRatio: number; // ratio relative to normal matter
 }
 
-export default function WIMPFluxGraph({ darkMatterMass, darkMatterRatio }: WIMPFluxGraphProps) {
+export default function WIMPFluxGraph({ darkMatterMass }: WIMPFluxGraphProps) {
   // Constants
   const WIMP_MASS = 100; // GeV
   const ANNIHILATION_CROSS_SECTION = 3e-26; // cm³/s (thermal relic value)
@@ -54,7 +53,7 @@ export default function WIMPFluxGraph({ darkMatterMass, darkMatterRatio }: WIMPF
     }
     
     return points;
-  }, [darkMatterMass, darkMatterRatio]);
+  }, [darkMatterMass]);
 
   return (
     <div className="w-full h-[500px] bg-black/30 rounded-lg p-4">
