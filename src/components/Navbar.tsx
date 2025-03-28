@@ -9,9 +9,9 @@ export default function Navbar() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/30 backdrop-blur-xl border-b border-white/10">
-      <div className="container mx-auto px-6">
-        <div className="flex items-center justify-between h-20">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-lg border-b border-white/10">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
           <Link 
             href="/" 
             className="group flex items-center space-x-3 text-2xl font-bold"
@@ -59,6 +59,19 @@ export default function Navbar() {
             >
               <span className="relative z-10">Data</span>
               {!isActive('/simulation/data') && (
+                <span className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/10 to-blue-500/0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              )}
+            </Link>
+            <Link
+              href="/analysis"
+              className={`relative px-6 py-2 rounded-full transition-all duration-300 group ${
+                isActive('/analysis')
+                  ? 'text-white bg-blue-500/20 border border-blue-500/30'
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              <span className="relative z-10">Analysis</span>
+              {!isActive('/analysis') && (
                 <span className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/10 to-blue-500/0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               )}
             </Link>

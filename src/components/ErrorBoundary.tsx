@@ -4,6 +4,10 @@ import { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
+  FallbackComponent?: React.ComponentType<{
+    error: Error;
+    resetErrorBoundary: () => void;
+  }>;
 }
 
 interface State {
@@ -24,8 +28,21 @@ export default class ErrorBoundary extends Component<Props, State> {
     console.error('Uncaught error:', error, errorInfo);
   }
 
+  public resetErrorBoundary = () => {
+    this.setState({ hasError: false, error: undefined });
+  };
+
   public render() {
     if (this.state.hasError) {
+      if (this.props.FallbackComponent) {
+        return (
+          <this.props.FallbackComponent
+            error={this.state.error!}
+            resetErrorBoundary={this.resetErrorBoundary}
+          />
+        );
+      }
+
       return (
         <div className="min-h-[400px] flex items-center justify-center p-4">
           <div className="text-center space-y-4">
@@ -35,10 +52,10 @@ export default class ErrorBoundary extends Component<Props, State> {
               We encountered an error while loading the simulation. Please try refreshing the page.
             </p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={this.resetErrorBoundary}
               className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-500 rounded-lg transition-colors"
             >
-              Refresh Page
+              Try Again
             </button>
           </div>
         </div>

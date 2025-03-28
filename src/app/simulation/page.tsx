@@ -1,14 +1,41 @@
 'use client';
 
-import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import VelocityDisplay from '@/components/VelocityDisplay';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useGalaxy } from '@/context/GalaxyContext';
 
+// Custom error fallback for the simulation
+const SimulationErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) => (
+  <div className="aspect-square w-full rounded-lg bg-black/30 flex flex-col items-center justify-center p-8">
+    <div className="text-center space-y-4">
+      <div className="text-4xl mb-4">🌌</div>
+      <h3 className="text-xl font-space text-purple-500">Oops! The simulation encountered an error</h3>
+      <p className="text-gray-400 max-w-md mx-auto mb-4">
+        {error.message || "We had trouble initializing the galaxy simulation. This might be due to WebGL not being available or supported by your browser."}
+      </p>
+      <button
+        onClick={resetErrorBoundary}
+        className="px-6 py-3 bg-purple-500/20 hover:bg-purple-500/30 text-purple-500 rounded-lg transition-colors"
+      >
+        Try Again
+      </button>
+    </div>
+  </div>
+);
+
+// Custom loading component for the simulation
+const SimulationLoading = () => (
+  <div className="aspect-square w-full rounded-lg bg-black/30 flex flex-col items-center justify-center p-8">
+    <LoadingSpinner />
+    <p className="text-purple-500 mt-4 font-space">Initializing Galaxy Simulation...</p>
+  </div>
+);
+
+// Dynamically import the GalaxySimulation component with custom loading
 const GalaxySimulation = dynamic(() => import('@/components/GalaxySimulation'), {
-  loading: () => <LoadingSpinner />,
+  loading: () => <SimulationLoading />,
   ssr: false,
 });
 
@@ -28,10 +55,8 @@ export default function SimulationPage() {
             <section className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-white/10">
               <h2 className="text-xl font-space font-bold mb-4 text-purple-500">3D Galaxy Visualization</h2>
               <div className="aspect-square w-full rounded-lg overflow-hidden">
-                <ErrorBoundary>
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <GalaxySimulation {...params} />
-                  </Suspense>
+                <ErrorBoundary FallbackComponent={SimulationErrorFallback}>
+                  <GalaxySimulation {...params} />
                 </ErrorBoundary>
               </div>
             </section>

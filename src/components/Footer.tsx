@@ -27,6 +27,11 @@ export default function Footer() {
                   📊 Data Analysis
                 </a>
               </li>
+              <li>
+                <a href="/analysis" className="text-gray-400 hover:text-purple-500 transition-colors">
+                  🔬 Advanced Analysis
+                </a>
+              </li>
             </ul>
           </div>
           <div>

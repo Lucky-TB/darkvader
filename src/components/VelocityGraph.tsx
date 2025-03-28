@@ -9,65 +9,62 @@ const PARSEC = 3.086e16; // meters
 const G = 6.674e-11; // gravitational constant
 const KPC_TO_PARSEC = 1000; // 1 kpc = 1000 parsec
 
-interface VelocityGraphProps {
-  darkMatterMass: number;
-  normalMatterMass: number;
-  blackHoleMass: number;
-  darkMatterRatio: number;
-}
-
-function calculateVelocities(distance: number, params: VelocityGraphProps) {
-  // Skip calculation for distance = 0 to avoid division by zero
-  if (distance === 0) return { expected: 0, actual: 0, bulge: 0, disk: 0, halo: 0 };
-
-  // Convert distance to meters
-  const r = distance * KPC_TO_PARSEC * PARSEC;
+function calculateVelocities(radius: number, params: { darkMatterMass: number, normalMatterMass: number, blackHoleMass: number }) {
+  // Skip calculation for distance = 0
+  if (radius === 0) return { expected: 0, actual: 0 };
   
-  // Convert masses to kg
-  const dmMass = params.darkMatterMass * SOLAR_MASS;
-  const nmMass = params.normalMatterMass * SOLAR_MASS;
-  const bhMass = params.blackHoleMass * SOLAR_MASS;
+  // Convert radius to meters
+  const r = radius * KPC_TO_PARSEC * PARSEC;
+  
+  // Convert masses to kg (scale masses appropriately)
+  const dmMass = params.darkMatterMass * 1e12 * SOLAR_MASS; // Convert from 10¹² solar masses
+  const nmMass = params.normalMatterMass * 1e11 * SOLAR_MASS; // Convert from 10¹¹ solar masses
+  const bhMass = params.blackHoleMass * 1e6 * SOLAR_MASS;  // Convert from 10⁶ solar masses
 
   // Bulge contribution (de Vaucouleurs profile)
-  const bulgeEffectiveRadius = 0.5 * KPC_TO_PARSEC * PARSEC; // Typical bulge size
-  const bulgeMass = nmMass * 0.2; // About 20% of visible mass in bulge
-  const bulgeVelocity = Math.sqrt((G * bulgeMass) / r) * 
-    Math.exp(-7.669 * (Math.pow(r/bulgeEffectiveRadius, 0.25) - 1));
-  
+  const bulgeRadius = 1 * KPC_TO_PARSEC * PARSEC; // 1 kpc typical bulge radius
+  const bulgeMass = 0.2 * nmMass; // 20% of visible mass in bulge
+  const vBulge = Math.sqrt((G * bulgeMass) / r) * 
+    Math.exp(-7.669 * (Math.pow(r/bulgeRadius, 0.25) - 1));
+
   // Disk contribution (exponential disk)
-  const diskMass = nmMass * 0.8; // About 80% of visible mass in disk
+  const diskMass = 0.8 * nmMass; // 80% of visible mass in disk
   const diskScaleLength = 3 * KPC_TO_PARSEC * PARSEC;
   const x = r / (2 * diskScaleLength);
-  // Better Bessel function approximation
-  const I0K0 = (1 / (1 + 0.5*x*x)); // I0*K0 approximation
-  const I1K1 = (1 / (2 + x*x));     // I1*K1 approximation
-  const diskVelocity = Math.sqrt((G * diskMass * x * x * (I0K0 - I1K1)) / r);
+  const vDisk = Math.sqrt((G * diskMass) / r) * 
+    Math.sqrt(x * x * (1 - Math.exp(-x) * (1 + x)));
+
+  // Black hole contribution (Keplerian)
+  const vBH = Math.sqrt((G * bhMass) / r);
 
   // Dark matter halo contribution (NFW profile)
   const rs = 20 * KPC_TO_PARSEC * PARSEC; // Scale radius
   const rho0 = dmMass / (4 * Math.PI * Math.pow(rs, 3)); // Characteristic density
-  const haloVelocity = Math.sqrt((4 * Math.PI * G * rho0 * Math.pow(rs, 3) / r) * 
+  const vHalo = Math.sqrt((4 * Math.PI * G * rho0 * Math.pow(rs, 3) / r) * 
     (Math.log(1 + r/rs) - (r/rs)/(1 + r/rs)));
 
   // Total velocities
-  const expectedV = Math.sqrt(bulgeVelocity * bulgeVelocity + diskVelocity * diskVelocity);
-  const actualV = Math.sqrt(expectedV * expectedV + haloVelocity * haloVelocity);
+  const expectedV = Math.sqrt(vBH * vBH + vBulge * vBulge + vDisk * vDisk); // Without dark matter
+  const actualV = Math.sqrt(expectedV * expectedV + vHalo * vHalo); // With dark matter
 
   return {
-    expected: expectedV / 1000000, // Convert to thousands of km/s
-    actual: actualV / 1000000,     // Convert to thousands of km/s
+    expected: expectedV / 1000, // Convert to km/s
+    actual: actualV / 1000,     // Convert to km/s
   };
 }
 
-export default function VelocityGraph({ darkMatterMass, normalMatterMass, blackHoleMass, darkMatterRatio }: VelocityGraphProps) {
+export default function VelocityGraph({ darkMatterMass, normalMatterMass, blackHoleMass }: {
+  darkMatterMass: number;
+  normalMatterMass: number;
+  blackHoleMass: number;
+}) {
   const data = useMemo(() => {
     const points = [];
-    for (let r = 0; r <= 20; r += 0.25) {
+    for (let r = 0; r <= 70; r += 0.5) {
       const velocities = calculateVelocities(r, { 
         darkMatterMass, 
         normalMatterMass, 
-        blackHoleMass, 
-        darkMatterRatio 
+        blackHoleMass 
       });
       points.push({
         distance: r,
@@ -76,10 +73,10 @@ export default function VelocityGraph({ darkMatterMass, normalMatterMass, blackH
       });
     }
     return points;
-  }, [darkMatterMass, normalMatterMass, blackHoleMass, darkMatterRatio]);
+  }, [darkMatterMass, normalMatterMass, blackHoleMass]);
 
   return (
-    <div className="w-full h-full bg-black/50 p-4 rounded-lg">
+    <div className="w-full h-[400px] bg-black/50 p-4 rounded-lg">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
           <CartesianGrid stroke="#ffffff20" />
@@ -87,12 +84,14 @@ export default function VelocityGraph({ darkMatterMass, normalMatterMass, blackH
             dataKey="distance"
             stroke="#ffffff80"
             label={{ value: 'Distance (kpc)', position: 'bottom', fill: '#ffffff80' }}
-            domain={[0, 20]}
+            domain={[0, 70]}
+            ticks={[0, 10, 20, 30, 40, 50, 60, 70]}
           />
           <YAxis
             stroke="#ffffff80"
-            label={{ value: 'Velocity (thousands of km/s)', angle: -90, position: 'left', fill: '#ffffff80' }}
-            domain={[0, 'auto']}
+            label={{ value: 'Velocity (km/s)', angle: -90, position: 'left', fill: '#ffffff80' }}
+            domain={[0, 300]}
+            ticks={[0, 50, 100, 150, 200, 250, 300]}
           />
           <Tooltip
             contentStyle={{
@@ -101,7 +100,7 @@ export default function VelocityGraph({ darkMatterMass, normalMatterMass, blackH
               borderRadius: '0.5rem',
             }}
             labelStyle={{ color: '#ffffff' }}
-            formatter={(value: number) => `${(value * 1000).toFixed(0)} km/s`}
+            formatter={(value: number) => `${value.toFixed(0)} km/s`}
             labelFormatter={(value: number) => `Distance: ${value} kpc`}
           />
           <Legend

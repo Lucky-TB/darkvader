@@ -3,13 +3,21 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
+interface CustomShaderMaterial extends THREE.ShaderMaterial {
+  uniforms: {
+    time: { value: number };
+    colorA: { value: THREE.Color };
+    colorB: { value: THREE.Color };
+  };
+}
+
 export default function SpaceBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const starsRef = useRef<THREE.Points | null>(null);
-  const nebulaRef = useRef<THREE.Mesh | null>(null);
+  const nebulaRef = useRef<THREE.Mesh<THREE.SphereGeometry, CustomShaderMaterial> | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -93,7 +101,7 @@ export default function SpaceBackground() {
       `,
       transparent: true,
       blending: THREE.AdditiveBlending,
-    });
+    }) as CustomShaderMaterial;
 
     const nebula = new THREE.Mesh(nebulaGeometry, nebulaMaterial);
     scene.add(nebula);
